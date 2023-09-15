@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include detima *.css
+recursive-include detima *.csv
+recursive-include detima *.html
+recursive-include detima *.ico
+recursive-include detima *.js
+recursive-include detima *.json
+recursive-include detima *.md
+recursive-include detima *.png
+recursive-include detima *.py
+recursive-include detima *.svg
+recursive-include detima *.txt
+recursive-exclude detima *.pyc

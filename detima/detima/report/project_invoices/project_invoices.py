@@ -70,6 +70,24 @@ def execute(filters=None):
 				width="100",
 			)
 		)
+    columns.append(
+			dict(
+				label=_("Total"),
+				fieldname="Total",
+				fieldtype="Currency",
+				options="Company:company:default_currency",
+				width="100",
+			)
+		)
+    columns.append(
+			dict(
+				label=_("Total Running Balance"),
+				fieldname="Total Running Balance",
+				fieldtype="Currency",
+				options="Company:company:default_currency",
+				width="100",
+			)
+		)
 
     data = []
 
@@ -84,7 +102,8 @@ def execute(filters=None):
         si.posting_date AS 'Posting Date',
         'Sales' AS 'Invoice Type',
         si.total AS 'Amount',
-        si.total_taxes_and_charges AS 'Tax'
+        si.total_taxes_and_charges AS 'Tax',
+        si.grand_total AS 'Total'
     FROM
         `tabSales Invoice` si
     WHERE
@@ -101,7 +120,8 @@ def execute(filters=None):
         pi.posting_date AS 'Posting Date',
         'Purchase' AS 'Invoice Type',
         pi.total AS 'Amount',
-        pi.total_taxes_and_charges AS 'Tax'
+        pi.total_taxes_and_charges AS 'Tax',
+        pi.grand_total AS 'Total'
     FROM
         `tabPurchase Invoice` pi
     WHERE
@@ -120,23 +140,21 @@ def execute(filters=None):
 
     amount_running_balance = 0
     tax_running_balance = 0
-    total = 0  # Initialize the total
+    total_running_balance = 0
 
     for row in merged_result:
         if row.get('Invoice Type') == 'Sales':
             amount_running_balance += row.get('Amount')
             tax_running_balance += row.get('Tax')
-            total += row.get('Amount')  # Add the amount to the total for sales invoices
+            total_running_balance += row.get('Total')
         elif row.get('Invoice Type') == 'Purchase':
             amount_running_balance -= row.get('Amount')
             tax_running_balance -= row.get('Tax')
-            total -= row.get('Amount')  # Subtract the amount from the total for purchase invoices
-
-        # Add the 'Total' column to the row
-        row['Total'] = total
+            total_running_balance -= row.get('Total')
 
         row['Amount Running Balance'] = amount_running_balance
         row['Tax Running Balance'] = tax_running_balance
+        row['Total Running Balance'] = total_running_balance
         data.append(row)
 
     return columns, data

@@ -15,28 +15,58 @@ def execute(filters=None):
         },
         {
             "fieldname": "total_sales",
-            "label": _("Total Sales Invoice Amount"),
+            "label": _("Sales Amount"),
             "fieldtype": "Currency",
             "width": 150,
         },
         {
             "fieldname": "total_purchase",
-            "label": _("Total Purchase Invoice Amount"),
+            "label": _("Purchase Amount"),
+            "fieldtype": "Currency",
+            "width": 150,
+        },
+        {
+            "fieldname": "total_difference",
+            "label": _("Difference Amount"),
+            "fieldtype": "Currency",
+            "width": 150,
+        },
+        {
+            "fieldname": "tax_sales",
+            "label": _("Sales Tax"),
             "fieldtype": "Currency",
             "width": 150,
         },
         {
             "fieldname": "tax_purchase",
-            "label": _("Total Purchase Tax Amount"),
+            "label": _("Purchase Tax"),
+            "fieldtype": "Currency",
+            "width": 150,
+        },
+        {
+            "fieldname": "tax_difference",
+            "label": _("Tax Amount"),
+            "fieldtype": "Currency",
+            "width": 150,
+        },
+        {
+            "fieldname": "grand_sales",
+            "label": _("Sales Total"),
             "fieldtype": "Currency",
             "width": 150,
         },
         {
             "fieldname": "grand_purchase",
-            "label": _("Grand Total Purchase Tax Amount"),
+            "label": _("Purchase Total"),
             "fieldtype": "Currency",
             "width": 150,
         },
+        {
+            "fieldname": "grand_difference",
+            "label": _("Difference Total"),
+            "fieldtype": "Currency",
+            "width": 150,
+        }
     ]
 
     data = []
@@ -45,22 +75,43 @@ def execute(filters=None):
     query = """
         SELECT
             p.name AS project,
-            SUM(si.total) AS total_sales,
-            SUM(si.total_taxes_and_charges) AS tax_sales,
-            SUM(si.grand_total) AS grand_sales,
-            SUM(pi.total) AS total_purchase,
-            SUM(pi.total_taxes_and_charges) AS tax_purchase,
-            SUM(pi.grand_total) AS grand_purchase
+            COALESCE(si.total_sales, 0) AS total_sales,
+            COALESCE(pi.total_purchase, 0) AS total_purchase,
+            COALESCE(si.total_sales, 0) - COALESCE(pi.total_purchase, 0) AS total_difference,
+            COALESCE(si.tax_sales, 0) AS tax_sales,
+            COALESCE(pi.tax_purchase, 0) AS tax_purchase,
+            COALESCE(si.tax_sales, 0) - COALESCE(pi.tax_purchase, 0) AS tax_difference,
+            COALESCE(si.grand_sales, 0) AS grand_sales,
+            COALESCE(pi.grand_purchase, 0) AS grand_purchase,
+            COALESCE(si.grand_sales, 0) - COALESCE(pi.grand_purchase, 0) AS grand_difference
         FROM
             `tabProject` p
-        LEFT JOIN
-            `tabSales Invoice` si ON p.name = si.project
-        LEFT JOIN
-            `tabPurchase Invoice` pi ON p.name = pi.project
-        WHERE
-            p.status = 'Open'
-            AND pi.docstatus = 1
-            AND si.docstatus = 1
+        LEFT JOIN (
+            SELECT
+                project,
+                SUM(total) AS total_sales,
+                SUM(total_taxes_and_charges) AS tax_sales,
+                SUM(grand_total) AS grand_sales
+            FROM
+                `tabSales Invoice`
+            WHERE
+                docstatus = 1
+            GROUP BY
+                project
+        ) si ON p.name = si.project
+        LEFT JOIN (
+            SELECT
+                project,
+                SUM(total) AS total_purchase,
+                SUM(total_taxes_and_charges) AS tax_purchase,
+                SUM(grand_total) AS grand_purchase
+            FROM
+                `tabPurchase Invoice`
+            WHERE
+                docstatus = 1
+            GROUP BY
+                project
+        ) pi ON p.name = pi.project
     """
 
     status = filters.get("status")

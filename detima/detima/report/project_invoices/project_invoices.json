@@ -1,0 +1,29 @@
+{
+ "add_total_row": 1,
+ "columns": [],
+ "creation": "2023-09-16 07:38:04.006172",
+ "disable_prepared_report": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "modified": "2023-09-16 07:50:59.308919",
+ "modified_by": "Administrator",
+ "module": "Detima",
+ "name": "Project Invoices",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Report",
+ "report_name": "Project Invoices",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "Projects Manager"
+  },
+  {
+   "role": "Projects User"
+  }
+ ]
+}

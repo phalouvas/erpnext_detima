@@ -20,18 +20,6 @@ def execute(filters=None):
             "width": 150,
         },
         {
-            "fieldname": "tax_sales",
-            "label": _("Total Sales Tax Amount"),
-            "fieldtype": "Currency",
-            "width": 150,
-        },
-        {
-            "fieldname": "grand_sales",
-            "label": _("Grand Total Sales Tax Amount"),
-            "fieldtype": "Currency",
-            "width": 150,
-        },
-        {
             "fieldname": "total_purchase",
             "label": _("Total Purchase Invoice Amount"),
             "fieldtype": "Currency",

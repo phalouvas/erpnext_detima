@@ -11,7 +11,16 @@ def execute(filters=None):
 			dict(
 				label=_("Invoice"),
 				fieldname="Invoice",
-				fieldtype="Dynamic Link",
+				fieldtype="data",
+				options=None,
+				width="100",
+			)
+		)
+    columns.append(
+			dict(
+				label=_("Name"),
+				fieldname="Name",
+				fieldtype="data",
 				options=None,
 				width="100",
 			)
@@ -99,6 +108,7 @@ def execute(filters=None):
     query_sales = """
     SELECT
         si.name AS 'Invoice',
+        si.customer AS 'Name',
         si.posting_date AS 'Posting Date',
         'Sales' AS 'Invoice Type',
         si.total AS 'Amount',
@@ -109,6 +119,7 @@ def execute(filters=None):
     WHERE
         si.project = %(project_name)s
         AND si.posting_date BETWEEN %(date_from)s AND %(date_to)s
+        AND si.docstatus = 1
     ORDER BY 
         'Posting Date'
     """
@@ -117,16 +128,18 @@ def execute(filters=None):
     query_purchase = """
     SELECT
         pi.name AS 'Invoice',
+        pi.supplier AS 'Name',
         pi.posting_date AS 'Posting Date',
         'Purchase' AS 'Invoice Type',
-        pi.total AS 'Amount',
-        pi.total_taxes_and_charges AS 'Tax',
-        pi.grand_total AS 'Total'
+        (-1 * pi.total) AS 'Amount',
+        (-1 * pi.total_taxes_and_charges) AS 'Tax',
+        (-1 * pi.grand_total) AS 'Total'
     FROM
         `tabPurchase Invoice` pi
     WHERE
         pi.project = %(project_name)s
         AND pi.posting_date BETWEEN %(date_from)s AND %(date_to)s
+        AND pi.docstatus = 1
     ORDER BY 
         'Posting Date'
     """
@@ -143,14 +156,9 @@ def execute(filters=None):
     total_running_balance = 0
 
     for row in merged_result:
-        if row.get('Invoice Type') == 'Sales':
-            amount_running_balance += row.get('Amount')
-            tax_running_balance += row.get('Tax')
-            total_running_balance += row.get('Total')
-        elif row.get('Invoice Type') == 'Purchase':
-            amount_running_balance -= row.get('Amount')
-            tax_running_balance -= row.get('Tax')
-            total_running_balance -= row.get('Total')
+        amount_running_balance += row.get('Amount')
+        tax_running_balance += row.get('Tax')
+        total_running_balance += row.get('Total')
 
         row['Amount Running Balance'] = amount_running_balance
         row['Tax Running Balance'] = tax_running_balance

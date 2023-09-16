@@ -74,30 +74,29 @@ def execute(filters=None):
     data = []
 
     project_name = filters.get("project")
-    period_start_date = filters.get("period_start_date")
-    period_end_date = filters.get("period_end_date")
+    date_from = filters.get("period_start_date")
+    date_to = filters.get("period_end_date")
 
-    # SQL query to fetch sales and purchase invoices for the project
-    query = """
+    # Query for sales invoices sorted by posting date
+    query_sales = """
     SELECT
         si.name AS 'Sales Invoice',
         si.posting_date AS 'Sales Invoice Date',
-        pi.name AS 'Purchase Invoice',
-        pi.posting_date AS 'Purchase Invoice Date',
+        NULL AS 'Purchase Invoice',
+        NULL AS 'Purchase Invoice Date',
         'Sales' AS 'Invoice Type',
         si.total AS 'Amount'
     FROM
         `tabSales Invoice` si
-    LEFT JOIN
-        `tabPurchase Invoice` pi
-    ON
-        si.project = pi.project
     WHERE
         si.project = %(project_name)s
-        AND si.posting_date BETWEEN %(period_start_date)s AND %(period_end_date)s
+        AND si.posting_date BETWEEN %(date_from)s AND %(date_to)s
+    ORDER BY 
+        'Sales Invoice Date'
+    """
 
-    UNION ALL
-
+    # Query for purchase invoices sorted by posting date
+    query_purchase = """
     SELECT
         NULL AS 'Sales Invoice',
         NULL AS 'Sales Invoice Date',
@@ -109,17 +108,22 @@ def execute(filters=None):
         `tabPurchase Invoice` pi
     WHERE
         pi.project = %(project_name)s
-        AND pi.posting_date BETWEEN %(period_start_date)s AND %(period_end_date)s
-		
+        AND pi.posting_date BETWEEN %(date_from)s AND %(date_to)s
+    ORDER BY 
+        'Purchase Invoice Date'
     """
 
-    # Execute the SQL query and calculate the running balance
-    query_result = frappe.db.sql(query, {"project_name": project_name, "period_start_date": period_start_date, "period_end_date": period_end_date}, as_dict=True)
+    # Execute both SQL queries
+    query_sales_result = frappe.db.sql(query_sales, {"project_name": project_name, "date_from": date_from, "date_to": date_to}, as_dict=True)
+    query_purchase_result = frappe.db.sql(query_purchase, {"project_name": project_name, "date_from": date_from, "date_to": date_to}, as_dict=True)
+
+    # Merge the results and sort them by date
+    merged_result = sorted(query_sales_result + query_purchase_result, key=lambda x: x.get('Sales Invoice Date') or x.get('Purchase Invoice Date'))
 
     running_balance = 0
     total = 0  # Initialize the total
 
-    for row in query_result:
+    for row in merged_result:
         if row.get('Invoice Type') == 'Sales':
             running_balance += row.get('Amount')
             total += row.get('Amount')  # Add the amount to the total for sales invoices

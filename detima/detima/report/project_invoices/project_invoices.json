@@ -1,5 +1,5 @@
 {
- "add_total_row": 1,
+ "add_total_row": 0,
  "columns": [],
  "creation": "2023-09-16 07:38:04.006172",
  "disable_prepared_report": 0,
@@ -9,7 +9,7 @@
  "filters": [],
  "idx": 0,
  "is_standard": "Yes",
- "modified": "2023-09-16 07:50:59.308919",
+ "modified": "2023-09-16 08:26:04.216570",
  "modified_by": "Administrator",
  "module": "Detima",
  "name": "Project Invoices",

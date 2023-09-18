@@ -16,9 +16,8 @@ frappe.query_reports["Project Sales and Purchase Summary"] = {
 			"fieldname":"status",
 			"label": __("Status"),
 			"fieldtype": "Select",
-			"options": ["Open", "Completed", "Cancelled"],
-			"default": "Open",
-			"reqd": 1
+			"options": ["", "Open", "Completed", "Cancelled"],
+			"reqd": 0
 		}
 	]
 };

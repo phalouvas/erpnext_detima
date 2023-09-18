@@ -112,11 +112,14 @@ def execute(filters=None):
             GROUP BY
                 project
         ) pi ON p.name = pi.project
-        WHERE p.status = %(status)s
-        GROUP BY p.name
     """
 
     status = filters.get("status")
-    result = frappe.db.sql(query, {"status": status}, as_dict=True)
+    if filters:
+        if status:
+            query = query + f" WHERE p.status = '{status}'"
+
+    query = query + f" GROUP BY p.name"
+    result = frappe.db.sql(query, as_dict=True)
 
     return columns, result

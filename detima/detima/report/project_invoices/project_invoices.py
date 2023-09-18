@@ -98,7 +98,7 @@ def execute(filters=None):
 			)
 		)
 
-    data = []
+    result = []
 
     project_name = filters.get("project")
     date_from = filters.get("period_start_date")
@@ -156,13 +156,13 @@ def execute(filters=None):
     total_running_balance = 0
 
     for row in merged_result:
-        amount_running_balance += row.get('Amount')
-        tax_running_balance += row.get('Tax')
-        total_running_balance += row.get('Total')
+        amount_running_balance = amount_running_balance + row.get('Amount')
+        tax_running_balance = tax_running_balance + row.get('Tax')
+        total_running_balance = total_running_balance + row.get('Total')
 
         row['Amount Running Balance'] = amount_running_balance
         row['Tax Running Balance'] = tax_running_balance
         row['Total Running Balance'] = total_running_balance
-        data.append(row)
+        result.append(row)
 
-    return columns, data
+    return columns, result

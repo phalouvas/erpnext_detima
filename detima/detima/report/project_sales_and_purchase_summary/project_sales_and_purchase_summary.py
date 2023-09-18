@@ -45,7 +45,7 @@ def execute(filters=None):
         },
         {
             "fieldname": "tax_difference",
-            "label": _("Tax Amount"),
+            "label": _("Difference Tax"),
             "fieldtype": "Currency",
             "width": 150,
         },
@@ -69,7 +69,8 @@ def execute(filters=None):
         }
     ]
 
-    data = []
+    result = []
+    status = filters.get("status")
 
     # Query to calculate the total sales and purchase amounts for each project
     query = """
@@ -112,14 +113,10 @@ def execute(filters=None):
             GROUP BY
                 project
         ) pi ON p.name = pi.project
+        WHERE p.status = %s
+        GROUP BY p.name
     """
 
-    status = filters.get("status")
-    if filters:
-        if status:
-            query += f" AND p.status = '{status}'"
+    result = frappe.db.sql(query, status, as_dict=True)
 
-    query += "GROUP BY p.name"
-    data = frappe.db.sql(query, as_dict=True)
-
-    return columns, data
+    return columns, result

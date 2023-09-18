@@ -70,7 +70,6 @@ def execute(filters=None):
     ]
 
     result = []
-    status = filters.get("status")
 
     # Query to calculate the total sales and purchase amounts for each project
     query = """
@@ -113,10 +112,11 @@ def execute(filters=None):
             GROUP BY
                 project
         ) pi ON p.name = pi.project
-        WHERE p.status = %s
+        WHERE p.status = %(status)s
         GROUP BY p.name
     """
 
-    result = frappe.db.sql(query, status, as_dict=True)
+    status = filters.get("status")
+    result = frappe.db.sql(query, {"status": status}, as_dict=True)
 
     return columns, result

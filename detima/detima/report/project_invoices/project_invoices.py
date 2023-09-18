@@ -9,10 +9,19 @@ def execute(filters=None):
     columns = []
     columns.append(
 			dict(
-				label=_("Invoice"),
-				fieldname="Invoice",
-				fieldtype="data",
-				options=None,
+				label=_("Sales Invoice"),
+				fieldname="Sales Invoice",
+				fieldtype="Link",
+				options="Sales Invoice",
+				width="100",
+			)
+		)
+    columns.append(
+			dict(
+				label=_("Purchase Invoice"),
+				fieldname="Purchase Invoice",
+				fieldtype="Link",
+				options="Purchase Invoice",
 				width="100",
 			)
 		)
@@ -34,15 +43,6 @@ def execute(filters=None):
 			width="100",
 		)
 	)    
-    columns.append(
-			dict(
-				label=_("Invoice Type"),
-				fieldname="Invoice Type",
-				fieldtype="data",
-				options=None,
-				width="100",
-			)
-		)
     columns.append(
 			dict(
 				label=_("Amount"),
@@ -101,16 +101,13 @@ def execute(filters=None):
     result = []
 
     project_name = filters.get("project")
-    date_from = filters.get("period_start_date")
-    date_to = filters.get("period_end_date")
 
     # Query for sales invoices sorted by posting date
     query_sales = """
     SELECT
-        si.name AS 'Invoice',
+        si.name AS 'Sales Invoice',
         si.customer AS 'Name',
         si.posting_date AS 'Posting Date',
-        'Sales' AS 'Invoice Type',
         si.total AS 'Amount',
         si.total_taxes_and_charges AS 'Tax',
         si.grand_total AS 'Total'
@@ -118,7 +115,6 @@ def execute(filters=None):
         `tabSales Invoice` si
     WHERE
         si.project = %(project_name)s
-        AND si.posting_date BETWEEN %(date_from)s AND %(date_to)s
         AND si.docstatus = 1
     ORDER BY 
         'Posting Date'
@@ -127,10 +123,9 @@ def execute(filters=None):
     # Query for purchase invoices sorted by posting date
     query_purchase = """
     SELECT
-        pi.name AS 'Invoice',
+        pi.name AS 'Purchase Invoice',
         pi.supplier AS 'Name',
         pi.posting_date AS 'Posting Date',
-        'Purchase' AS 'Invoice Type',
         (-1 * pi.total) AS 'Amount',
         (-1 * pi.total_taxes_and_charges) AS 'Tax',
         (-1 * pi.grand_total) AS 'Total'
@@ -138,15 +133,14 @@ def execute(filters=None):
         `tabPurchase Invoice` pi
     WHERE
         pi.project = %(project_name)s
-        AND pi.posting_date BETWEEN %(date_from)s AND %(date_to)s
         AND pi.docstatus = 1
     ORDER BY 
         'Posting Date'
     """
 
     # Execute both SQL queries
-    query_sales_result = frappe.db.sql(query_sales, {"project_name": project_name, "date_from": date_from, "date_to": date_to}, as_dict=True)
-    query_purchase_result = frappe.db.sql(query_purchase, {"project_name": project_name, "date_from": date_from, "date_to": date_to}, as_dict=True)
+    query_sales_result = frappe.db.sql(query_sales, {"project_name": project_name}, as_dict=True)
+    query_purchase_result = frappe.db.sql(query_purchase, {"project_name": project_name}, as_dict=True)
 
     # Merge the results and sort them by date
     merged_result = sorted(query_sales_result + query_purchase_result, key=lambda x: x.get('Posting Date'))
